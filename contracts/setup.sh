@@ -1,0 +1,1 @@
+cleos create account eosio basic EOS5Uri7VCRoU1s8848K1BgPEGMcsP521gRzs6J6xrtucyedG9kGj EOS5Uri7VCRoU1s8848K1BgPEGMcsP521gRzs6J6xrtucyedG9kGj
