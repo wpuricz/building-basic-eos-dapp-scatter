@@ -47,21 +47,25 @@
 <script>
 
 import * as Eos from 'eosjs';
-import secrets from '../../../config/secrets'
+import eosconfig from '../../../config/eosconfig'
 
 let config = {
-  keyProvider:secrets.keys,
-  httpEndpoint: secrets.endpoint
+  keyProvider:eosconfig.keys,
+  httpEndpoint: eosconfig.endpoint
 };
 let eos = Eos(config); // 127.0.0.1:8888
-let appcode = 'commerce.app';
+
 let currentUser = 'user1';
+let authorization = {
+    actor: currentUser,
+    permission: 'active'
+};
 
 export default {
   name: 'hello',
   data() {
     return {
-      msg: 'Basic EOS CRUD Example',
+      msg: 'Building a Basic EOS Dapp',
       rows:[],
       rowid:0,
       name:'',
@@ -79,9 +83,8 @@ export default {
     getProducts: async function() {
       let tableQuery = {
         "json":true,
-        "table_key":"uint64_t",
-        "scope":appcode,
-        "code":appcode,
+        "scope":eosconfig.scope,
+        "code":eosconfig.code,
         "table":"product"
       }
       
@@ -93,21 +96,18 @@ export default {
       
       try {
         this.processing = true;
+      
         await eos.transaction({
           actions: [
             {
-              account: appcode,
+              account: eosconfig.code,
               name: 'addproduct',
-              authorization: [{
-                actor: currentUser,
-                permission: 'active'
-              }],
+              authorization: [authorization],
               data: {
-                //id: this.rowid,
                 owner: currentUser,
                 name: this.name,
                 description: this.description,
-                price: this.price + ' EOS'
+                price: this.price + ' SYS'
                 
               }
             }
@@ -117,7 +117,7 @@ export default {
         this.processing = false;
 
       }catch(e) {
-        alert(JSON.parse(e).error.what)
+        alert(JSON.parse(e).error.details[0].message)
         
       }
 
@@ -127,12 +127,9 @@ export default {
       let result = await eos.transaction({
         actions: [
           {
-            account: appcode,
+            account: eosconfig.code,
             name: 'delproduct',
-            authorization: [{
-              actor: currentUser,
-              permission: 'active'
-            }],
+            authorization: [authorization],
             data: {
               id: rowid,
               owner:currentUser
@@ -150,19 +147,15 @@ export default {
       let result = await eos.transaction({
         actions: [
           {
-            account: appcode,
+            account: eosconfig.code,
             name: 'modproduct',
-            authorization: [{
-              actor: currentUser,
-              permission: 'active'
-            }],
+            authorization: [authorization],
             data: {
               id: this.rowid,
               owner: currentUser,
               name: this.name,
               description: this.description,
-              price: this.price + ' EOS'
-
+              price: this.price
             }
 
           }
