@@ -111,7 +111,6 @@ export default {
             this.price + ' SYS', 
             options
           );
-        //console.log(response);
         
         let result = await this.getProducts();
         this.processing = false;
@@ -128,20 +127,7 @@ export default {
         rowid,
         options
       )
-      // let result = await eos.transaction({
-      //   actions: [
-      //     {
-      //       account: eosconfig.code,
-      //       name: 'delproduct',
-      //       authorization: [authorization],
-      //       data: {
-      //         id: rowid,
-      //         owner:currentUser
-      //       }
-
-      //     }
-      //   ]
-      // })
+      
       let response = await this.getProducts();
       this.processing = false
     },
@@ -155,23 +141,7 @@ export default {
         this.price,
         options
       )
-      // let result = await eos.transaction({
-      //   actions: [
-      //     {
-      //       account: eosconfig.code,
-      //       name: 'modproduct',
-      //       authorization: [authorization],
-      //       data: {
-      //         id: this.rowid,
-      //         owner: currentUser,
-      //         name: this.name,
-      //         description: this.description,
-      //         price: this.price
-      //       }
-
-      //     }
-      //   ]
-      // })
+      
       let response = await this.getProducts()
       this.processing = false
       this.resetForm()
