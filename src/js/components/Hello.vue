@@ -51,15 +51,20 @@ import eosconfig from '../../../config/eosconfig'
 
 let config = {
   keyProvider:eosconfig.keys,
-  httpEndpoint: eosconfig.endpoint
+  httpEndpoint: eosconfig.endpoint,
+  //chainId: eosconfig.chainId
 };
 let eos = Eos(config); // 127.0.0.1:8888
 
+//let currentUser = 'willpuser1';
 let currentUser = 'user1';
 let authorization = {
     actor: currentUser,
     permission: 'active'
 };
+const options = {
+  authorization: [authorization]
+}
 
 export default {
   name: 'hello',
@@ -72,10 +77,12 @@ export default {
       description:'',
       price:'',
       processing:false,
-      editMode:false
+      editMode:false,
+      contract:null
     };
   },
   created: async function() {
+    this.contract = await eos.contract(eosconfig.code);
     this.getProducts();
 
   },
@@ -96,23 +103,16 @@ export default {
       
       try {
         this.processing = true;
-      
-        await eos.transaction({
-          actions: [
-            {
-              account: eosconfig.code,
-              name: 'addproduct',
-              authorization: [authorization],
-              data: {
-                owner: currentUser,
-                name: this.name,
-                description: this.description,
-                price: this.price + ' SYS'
-                
-              }
-            }
-          ]
-        })
+
+        let response = await this.contract.addproduct(
+            currentUser, 
+            this.name, 
+            this.description, 
+            this.price + ' SYS', 
+            options
+          );
+        //console.log(response);
+        
         let result = await this.getProducts();
         this.processing = false;
 
@@ -124,43 +124,54 @@ export default {
     },
     deleteProduct: async function(rowid) {
       this.processing = true
-      let result = await eos.transaction({
-        actions: [
-          {
-            account: eosconfig.code,
-            name: 'delproduct',
-            authorization: [authorization],
-            data: {
-              id: rowid,
-              owner:currentUser
-            }
+      let result = await this.contract.delproduct(
+        rowid,
+        options
+      )
+      // let result = await eos.transaction({
+      //   actions: [
+      //     {
+      //       account: eosconfig.code,
+      //       name: 'delproduct',
+      //       authorization: [authorization],
+      //       data: {
+      //         id: rowid,
+      //         owner:currentUser
+      //       }
 
-          }
-        ]
-      })
+      //     }
+      //   ]
+      // })
       let response = await this.getProducts();
       this.processing = false
     },
     editProduct: async function() {
       
       this.processing = true
-      let result = await eos.transaction({
-        actions: [
-          {
-            account: eosconfig.code,
-            name: 'modproduct',
-            authorization: [authorization],
-            data: {
-              id: this.rowid,
-              owner: currentUser,
-              name: this.name,
-              description: this.description,
-              price: this.price
-            }
+      let result = await this.contract.modproduct(
+        this.rowid,
+        this.name,
+        this.description,
+        this.price,
+        options
+      )
+      // let result = await eos.transaction({
+      //   actions: [
+      //     {
+      //       account: eosconfig.code,
+      //       name: 'modproduct',
+      //       authorization: [authorization],
+      //       data: {
+      //         id: this.rowid,
+      //         owner: currentUser,
+      //         name: this.name,
+      //         description: this.description,
+      //         price: this.price
+      //       }
 
-          }
-        ]
-      })
+      //     }
+      //   ]
+      // })
       let response = await this.getProducts()
       this.processing = false
       this.resetForm()
