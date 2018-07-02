@@ -1,23 +1,23 @@
-# vue-starter
+#### Basic EOS dapp example using scatter 
 
-> A Vue.js starter kit that lets you focus on more programming and less configruation.
+#### Config
 
-## Build Setup
+Create a file called eosconfig.js and add it to the config directory. Paste this into the file and add your actual endpoint and keys for the app:
 
-``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
-npm run build
 ```
-# build for production and view the bundle analyzer report
-npm run build --report
+module.exports = {
+    scope:"{accountnamehere}",
+    code:"{accountnamehere}",
+    protocol: "http",
+    url:"x.x.x.x",
+    port: 8888,
+    chainId:"{chainidhere}",
+  };
+```
+
+Start using: 
+    npm install
+    npm run dev
 
 
-
-For detailed explanation on how things work, consult the [docs for vue-loader](http://vuejs.github.io/vue-loader).
-=======
+##### Note: This is using EOSJS 14.1
