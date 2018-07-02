@@ -1,10 +1,11 @@
 <template>
   <div class="Hello">
-    {{msg}}
+    {{scatterMessage}}
 
      <div class="product-form">
       <!-- <label for="rowid">ID</label>
       <input name="rowid" v-model="rowid" /><br/> -->
+      
       <label for="name">Name</label>
       <input name="name" v-model="name"/><br/>
       <label for="description">Description</label>
@@ -49,21 +50,14 @@
 import * as Eos from 'eosjs';
 import eosconfig from '../../../config/eosconfig'
 
-let config = {
-  keyProvider:eosconfig.keys,
-  httpEndpoint: eosconfig.endpoint,
-  //chainId: eosconfig.chainId
-};
-let eos = Eos(config); // 127.0.0.1:8888
+let scatterInstalled = false;
 
-//let currentUser = 'willpuser1';
-let currentUser = 'user1';
-let authorization = {
-    actor: currentUser,
-    permission: 'active'
-};
-const options = {
-  authorization: [authorization]
+const network = {
+  blockchain:'eos',
+  protocol: eosconfig.protocol,
+  host: eosconfig.url, 
+  port: eosconfig.port, 
+  chainId: eosconfig.chainId 
 }
 
 export default {
@@ -78,15 +72,60 @@ export default {
       price:'',
       processing:false,
       editMode:false,
-      contract:null
+      contract:null,
+      scatterMessage: "",
+      eos:null,
+      currentUser:"",
+      options:null
     };
   },
   created: async function() {
-    this.contract = await eos.contract(eosconfig.code);
-    this.getProducts();
+    
+    setTimeout(() => {
+      if(!scatterInstalled) {
+        this.scatterMessage = "Scatter is not installed, please install and refresh page";
+      }
+    },2000);
+
+    document.addEventListener('scatterLoaded', scatterExtension => {
+      scatterInstalled = true;
+      const scatter = window.scatter;
+
+      scatter.getIdentity({accounts:[network]}).then(identity => {
+        
+        const account = scatter.identity.accounts.find(account => account.blockchain === 'eos')
+        const authorization = {actor:account.name, permission:account.authority};
+        this.options = { authorization: [authorization] }
+        
+        this.eos = scatter.eos(network,Eos,{ chainId: network.chainId});
+        
+        this.currentUser = scatter.identity.accounts[0].name;
+        this.scatterMessage = "Scatter detected, Welcome " + this.currentUser;
+
+        this.eos.contract(eosconfig.code)
+        .then(contract => {
+          this.contract = contract;
+          this.getProducts();
+
+        })
+        
+        
+      })
+      .catch(error => {
+        console.log(JSON.stringify(error));
+        if(error.type === "locked") {
+          this.scatterMessage = "Please unlock scatter and refresh the page";
+        }else{
+          this.scatterMessage = "No scatter identity found, please add identity and refresh the page";
+        }
+        
+      })
+      
+    })
 
   },
   methods: {
+    
     getProducts: async function() {
       let tableQuery = {
         "json":true,
@@ -95,7 +134,7 @@ export default {
         "table":"product"
       }
       
-      let result = await eos.getTableRows(tableQuery);
+      let result = await this.eos.getTableRows(tableQuery);
       this.rows = result.rows;
 
     },
@@ -103,13 +142,13 @@ export default {
       
       try {
         this.processing = true;
-
+        
         let response = await this.contract.addproduct(
-            currentUser, 
+            this.currentUser, 
             this.name, 
             this.description, 
             this.price + ' SYS', 
-            options
+            this.options
           );
         
         let result = await this.getProducts();
@@ -125,7 +164,7 @@ export default {
       this.processing = true
       let result = await this.contract.delproduct(
         rowid,
-        options
+        this.options
       )
       
       let response = await this.getProducts();
@@ -139,7 +178,7 @@ export default {
         this.name,
         this.description,
         this.price,
-        options
+        this.options
       )
       
       let response = await this.getProducts()
