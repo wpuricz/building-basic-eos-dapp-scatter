@@ -1,7 +1,7 @@
 <template>
   <div class="Hello">
     {{scatterMessage}}
-
+    
      <div class="product-form">
       <!-- <label for="rowid">ID</label>
       <input name="rowid" v-model="rowid" /><br/> -->
@@ -108,8 +108,7 @@ export default {
           this.getProducts();
 
         })
-        
-        
+
       })
       .catch(error => {
         console.log(JSON.stringify(error));
